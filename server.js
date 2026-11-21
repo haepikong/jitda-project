@@ -23,7 +23,7 @@ const mimeTypes = {
   '.svg': 'image/svg+xml',
   '.webp': 'image/webp'
 };
-const projectFiles = ['index.html', 'server.js', 'package.json', 'README.md', '__preview-bridge.js'];
+const projectFiles = ['index.html', 'server.js', 'package.json', 'README.md', '.gitignore', '__preview-bridge.js'];
 const crcTable = Uint32Array.from({ length: 256 }, (_, value) => {
   let crc = value;
   for (let bit = 0; bit < 8; bit++) crc = crc & 1 ? 0xedb88320 ^ (crc >>> 1) : crc >>> 1;
@@ -142,13 +142,14 @@ function publishLessonReflections(teacherName) {
 
 const server = http.createServer(async (request, response) => {
   const requestUrl = new URL(request.url, 'http://localhost');
-  if (request.method === 'GET' && requestUrl.pathname === '/download-project.zip') {
+  if (request.method === 'GET' && ['/download-project.zip', '/download-code'].includes(requestUrl.pathname)) {
     try {
       const archive = await createProjectZip();
       response.writeHead(200, {
         'Content-Disposition': 'attachment; filename="baeumgil-project.zip"',
         'Content-Length': archive.length,
-        'Content-Type': 'application/zip'
+        'Content-Type': 'application/zip',
+        'Cache-Control': 'no-store'
       });
       return response.end(archive);
     } catch {
